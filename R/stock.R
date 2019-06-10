@@ -21,18 +21,25 @@ stocknews_key <- function(key){
   Sys.setenv(STOCKNEWS_API_KEY = key)
 }
 
-#' Tickers
+#' Call
 #' 
-#' Get tickers data.
+#' Get news by tickers and categories.
 #' 
-#' @param tickers Vector of tickers.
+#' @param q Vector of tickers or a valid section (\code{alltickers}, \code{general}).
 #' @param ... Any other parameter from \url{https://stocknewsapi.com/documentation}.
 #' @param pages Number of pages to retrieve.
 #' 
+#' @examples
+#' \dontrun{
+#' tickers <- sn_tickers(c("AMZN", "GOOG"))
+#' sections <- sn_category("general")  
+#' }
+#' 
+#' @name calls
 #' @export
-sn_tickers <- function(tickers, ..., pages = 1){
-  assert_that(!missing(tickers), msg = "Missing tickers")
-  tickers <- paste0(tickers, collapse = ",")
+sn_tickers <- function(q, ..., pages = 1){
+  assert_that(!missing(q), msg = "Missing `q`")
+  tickers <- paste0(q, collapse = ",")
   parsed_url <- parse_url(BASE_URL)
   parsed_url$path <- BASE_PATH
   query <- list(
@@ -49,5 +56,34 @@ sn_tickers <- function(tickers, ..., pages = 1){
     response <- GET(url)
     warn_for_status(response)
     content(response)
-  })
+  }) %>% 
+    map("data") %>% 
+    flatten() %>% 
+    .parse()
+}
+
+#' @rdname calls
+#' @export
+sn_category <- function(q = "alltickers", ..., pages = 1){
+  assert_that(!missing(q), msg = "Missing `q`")
+  parsed_url <- parse_url(BASE_URL)
+  parsed_url$path <- c(BASE_PATH, "category")
+  query <- list(
+    items = 50,
+    ...,
+    section = q,
+    token = .get_token()
+  )
+  
+  map(seq(pages), function(p){
+    query$page <- p
+    parsed_url$query <- query
+    url <- build_url(parsed_url)
+    response <- GET(url)
+    warn_for_status(response)
+    content(response)
+  }) %>% 
+    map("data") %>% 
+    flatten() %>% 
+    .parse()
 }

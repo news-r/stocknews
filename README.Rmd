@@ -1,0 +1,50 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+<!-- badges: start -->
+[![Travis build status](https://travis-ci.org/news-r/stocknews.svg?branch=master)](https://travis-ci.org/news-r/stocknews)
+[![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/news-r/stocknews?branch=master&svg=true)](https://ci.appveyor.com/project/news-r/stocknews)
+<!-- badges: end -->
+
+# stocknews
+
+Access [Stock News API](https://stocknewsapi.com) from R.
+
+## Installation
+
+``` r
+# install.packages("remotes")
+remotes::install_github("news-r/stocknews")
+```
+
+## Setup
+
+Create a free account at [stocknewsapi.com](https://stocknewsapi.com) to create an API key.
+
+```r
+stocknews_key("xxXXxxXx")
+```
+
+Note that you can specify the `STOCKNEWS_API_KEY` key as an environment variable in your `.Renviron` for convenience.
+
+
+## Example
+
+```{r}
+library(stocknews)
+
+tickers <- sn_tickers(c("AMZN", "GOOG"))
+(sections <- sn_category("general"))
+```
