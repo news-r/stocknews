@@ -11,31 +11,43 @@
 #' stocknews_key("xXXxxXxXxXXx")  
 #' }
 #' 
+#' @import purrr
 #' @import httr
 #' @import assertthat
 #' 
 #' @export
 stocknews_key <- function(key){
   assert_that(!missing(key), msg = "Missing key")
-  Sys.setenv(STOCKNEWS_KEY = key)
+  Sys.setenv(STOCKNEWS_API_KEY = key)
 }
 
 #' Tickers
 #' 
 #' Get tickers data.
 #' 
+#' @param tickers Vector of tickers.
+#' @param ... Any other parameter from \url{https://stocknewsapi.com/documentation}.
+#' @param pages Number of pages to retrieve.
+#' 
 #' @export
-sn_stickers <- function(tickers, pages = 1){
-  assert_that(!misisng(tickers), msg = "Missing tickers")
+sn_tickers <- function(tickers, ..., pages = 1){
+  assert_that(!missing(tickers), msg = "Missing tickers")
   tickers <- paste0(tickers, collapse = ",")
-  url <- parse_url(BASE_URL)
-  url$path <- BASE_PATH
-  url$query <- list(
+  parsed_url <- parse_url(BASE_URL)
+  parsed_url$path <- BASE_PATH
+  query <- list(
+    items = 50,
+    ...,
     tickers = tickers,
-    token = Sys.getenv("STOCKNEWS_KEY")
+    token = .get_token()
   )
-  url <- build_url(url)
-  response <- GET(url)
-  stop_for_status(response)
-  content(response)
+  
+  map(seq(pages), function(p){
+    query$page <- p
+    parsed_url$query <- query
+    url <- build_url(parsed_url)
+    response <- GET(url)
+    warn_for_status(response)
+    content(response)
+  })
 }
